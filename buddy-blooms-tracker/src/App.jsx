@@ -1182,7 +1182,7 @@ function LoginScreen() {
       setAuthLoading(false)
       setAuthError(error.message)
     } else {
-      window.location.reload()
+      // sign-in succeeded; onAuthStateChange in App will update session state
     }
   }
 
