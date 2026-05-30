@@ -1215,22 +1215,16 @@ function LoginScreen() {
 }
 
 function App() {
-  // ── Auth session ──────────────────────────────────────────────────────────
-  const STORAGE_KEY = 'sb-wzckinsyhsantmjyizjb-auth-token'
-  function readLocalSession() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return null
-      const parsed = JSON.parse(raw)
-      const expired = parsed.expires_at && parsed.expires_at < Math.floor(Date.now() / 1000)
-      return (!expired && parsed.access_token) ? parsed : null
-    } catch (_) { return null }
-  }
-  const [session, setSession] = useState(() => readLocalSession())
-  const [sessionLoading, setSessionLoading] = useState(false)
+  const [session, setSession] = useState(null)
+  const [sessionLoading, setSessionLoading] = useState(true)
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s)
+      setSessionLoading(false)
+    })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s)
+      setSessionLoading(false)
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -1347,6 +1341,7 @@ function App() {
 
   if (loading) 
   if (sessionLoading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',fontSize:'16px',color:'#888'}}>Loading…</div>
+  if (sessionLoading) return null
   if (!session) return <LoginScreen />
 return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: '#aaa', fontSize: 14 }}>
