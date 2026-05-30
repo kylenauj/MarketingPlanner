@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from './supabase'
 
-// ── Constants ──────────────────────────────────────────────────────────────
 const STATUSES    = ['To Do', 'In Progress', 'In Review', 'Done']
 const PRIORITIES  = ['Low (1-10 Days)', 'Medium (1-3 Weeks)', 'High (ASAP)']
 const DEPARTMENTS = ['Marketing', 'Design', 'Development', 'Operations', 'Sales', 'Admin']
@@ -1304,7 +1303,8 @@ function App() {
       <div style={{ width: 32, height: 32, border: '2px solid #f0f0f0', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       Loading workspace…
     </div>
-  )return (
+  )
+return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: '#aaa', fontSize: 14 }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       <div style={{ width: 32, height: 32, border: '2px solid #f0f0f0', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
