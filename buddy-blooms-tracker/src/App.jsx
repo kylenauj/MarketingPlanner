@@ -1216,33 +1216,21 @@ function LoginScreen() {
 
 function App() {
   // ── Auth session ──────────────────────────────────────────────────────────
-  const [session, setSession] = useState(null)
-  const [sessionLoading, setSessionLoading] = useState(true)
+  const STORAGE_KEY = 'sb-wzckinsyhsantmjyizjb-auth-token'
+  function readLocalSession() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw) return null
+      const parsed = JSON.parse(raw)
+      const expired = parsed.expires_at && parsed.expires_at < Math.floor(Date.now() / 1000)
+      return (!expired && parsed.access_token) ? parsed : null
+    } catch (_) { return null }
+  }
+  const [session, setSession] = useState(() => readLocalSession())
+  const [sessionLoading, setSessionLoading] = useState(false)
   useEffect(() => {
-    // Read session: try getSession first, fall back to localStorage directly
-    const STORAGE_KEY = 'sb-wzckinsyhsantmjyizjb-auth-token'
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      if (s) {
-        setSession(s)
-        setSessionLoading(false)
-      } else {
-        // Fallback: read token directly from localStorage
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY)
-          if (raw) {
-            const parsed = JSON.parse(raw)
-            const isExpired = parsed.expires_at && parsed.expires_at < Math.floor(Date.now() / 1000)
-            if (!isExpired && parsed.access_token) {
-              setSession(parsed)
-            }
-          }
-        } catch (_) {}
-        setSessionLoading(false)
-      }
-    })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s)
-      setSessionLoading(false)
     })
     return () => subscription.unsubscribe()
   }, [])
