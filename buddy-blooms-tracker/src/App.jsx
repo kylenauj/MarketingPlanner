@@ -1219,9 +1219,26 @@ function App() {
   const [session, setSession] = useState(null)
   const [sessionLoading, setSessionLoading] = useState(true)
   useEffect(() => {
+    // Read session: try getSession first, fall back to localStorage directly
+    const STORAGE_KEY = 'sb-wzckinsyhsantmjyizjb-auth-token'
     supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s)
-      setSessionLoading(false)
+      if (s) {
+        setSession(s)
+        setSessionLoading(false)
+      } else {
+        // Fallback: read token directly from localStorage
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY)
+          if (raw) {
+            const parsed = JSON.parse(raw)
+            const isExpired = parsed.expires_at && parsed.expires_at < Math.floor(Date.now() / 1000)
+            if (!isExpired && parsed.access_token) {
+              setSession(parsed)
+            }
+          }
+        } catch (_) {}
+        setSessionLoading(false)
+      }
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s)
