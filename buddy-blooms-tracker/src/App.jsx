@@ -1169,34 +1169,17 @@ function MeetingView({ tasks }) {
 export default // ── Auth: Login Screen ────────────────────────────────────────────────────
 function LoginScreen() {
   const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
-  const [step, setStep] = useState('email') // 'email' | 'otp'
+  const [password, setPassword] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState(null)
 
-  async function handleSendOtp(e) {
+  async function handleLogin(e) {
     e.preventDefault()
     setAuthLoading(true)
     setAuthError(null)
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false }
-    })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
     setAuthLoading(false)
-    if (error) { setAuthError(error.message) } else { setStep('otp') }
-  }
-
-  async function handleVerifyOtp(e) {
-    e.preventDefault()
-    setAuthLoading(true)
-    setAuthError(null)
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: 'email'
-    })
-    setAuthLoading(false)
-    if (error) { setAuthError(error.message) }
+    if (error) setAuthError(error.message)
     // on success, onAuthStateChange in App will set session automatically
   }
 
@@ -1206,10 +1189,9 @@ function LoginScreen() {
     logo: { fontSize:'32px', marginBottom:'8px' },
     title: { fontSize:'22px', fontWeight:'700', color:'#1a1a1a', margin:'0 0 6px' },
     sub: { fontSize:'14px', color:'#888', margin:'0 0 28px' },
-    input: { width:'100%', padding:'12px 16px', borderRadius:'8px', border:'1.5px solid #E5E4E0', fontSize:'15px', outline:'none', boxSizing:'border-box', marginBottom:'14px' },
-    btn: { width:'100%', padding:'13px', borderRadius:'8px', background:'#1a1a1a', color:'#fff', fontSize:'15px', fontWeight:'600', border:'none', cursor:'pointer' },
-    back: { marginTop:'12px', fontSize:'13px', color:'#888', cursor:'pointer', background:'none', border:'none', textDecoration:'underline' },
-    err: { color:'#c0392b', fontSize:'13px', marginTop:'8px' },
+    input: { width:'100%', padding:'12px 16px', borderRadius:'8px', border:'1.5px solid #E5E4E0', fontSize:'15px', outline:'none', boxSizing:'border-box', marginBottom:'12px' },
+    btn: { width:'100%', padding:'13px', borderRadius:'8px', background:'#1a1a1a', color:'#fff', fontSize:'15px', fontWeight:'600', border:'none', cursor:'pointer', marginTop:'4px' },
+    err: { color:'#c0392b', fontSize:'13px', marginTop:'10px' },
   }
 
   return (
@@ -1217,26 +1199,13 @@ function LoginScreen() {
       <div style={styles.card}>
         <div style={styles.logo}>🌸</div>
         <h1 style={styles.title}>Buddy Blooms</h1>
-        {step === 'email' ? (
-          <>
-            <p style={styles.sub}>Sign in to access the Project Tracker</p>
-            <form onSubmit={handleSendOtp}>
-              <input style={styles.input} type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
-              <button style={styles.btn} type="submit" disabled={authLoading}>{authLoading ? 'Sending…' : 'Send Code'}</button>
-              {authError && <p style={styles.err}>{authError}</p>}
-            </form>
-          </>
-        ) : (
-          <>
-            <p style={styles.sub}>Enter the 6-digit code sent to<br/><strong>{email}</strong></p>
-            <form onSubmit={handleVerifyOtp}>
-              <input style={{...styles.input, textAlign:'center', letterSpacing:'0.3em', fontSize:'22px'}} type="text" placeholder="000000" value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g,'').slice(0,6))} maxLength={6} required />
-              <button style={styles.btn} type="submit" disabled={authLoading || otp.length < 6}>{authLoading ? 'Verifying…' : 'Sign In'}</button>
-              {authError && <p style={styles.err}>{authError}</p>}
-            </form>
-            <button style={styles.back} onClick={() => { setStep('email'); setOtp(''); setAuthError(null) }}>← Use a different email</button>
-          </>
-        )}
+        <p style={styles.sub}>Sign in to access the Project Tracker</p>
+        <form onSubmit={handleLogin}>
+          <input style={styles.input} type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} required />
+          <input style={styles.input} type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required />
+          <button style={styles.btn} type="submit" disabled={authLoading}>{authLoading ? 'Signing in…' : 'Sign In'}</button>
+          {authError && <p style={styles.err}>{authError}</p>}
+        </form>
       </div>
     </div>
   )
@@ -1247,14 +1216,6 @@ function App() {
   const [session, setSession] = useState(null)
   const [sessionLoading, setSessionLoading] = useState(true)
   useEffect(() => {
-    // Handle PKCE callback: exchange code for session if present in URL
-    const params = new URLSearchParams(window.location.search)
-    const code = params.get('code')
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(() => {
-        window.history.replaceState({}, '', window.location.pathname)
-      })
-    }
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s)
       setSessionLoading(false)
@@ -1265,6 +1226,7 @@ function App() {
     })
     return () => subscription.unsubscribe()
   }, [])
+
 
   const [tasks,           setTasks]          = useState([])
   const [loading,         setLoading]        = useState(true)
