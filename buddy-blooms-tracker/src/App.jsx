@@ -1284,7 +1284,6 @@ function App() {
     display: 'flex', alignItems: 'center', gap: 6, fontWeight: active ? 600 : 400,
   })
 
-  if (loading) 
   if (!unlocked) return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'#F9F8F5',fontFamily:'inherit'}}>
       <div style={{background:'#fff',borderRadius:'16px',padding:'48px 40px',boxShadow:'0 4px 24px rgba(0,0,0,0.08)',maxWidth:'360px',width:'100%',textAlign:'center'}}>
@@ -1298,7 +1297,14 @@ function App() {
       </div>
     </div>
   )
-return (
+
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: '#aaa', fontSize: 14 }}>
+      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
+      <div style={{ width: 32, height: 32, border: '2px solid #f0f0f0', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      Loading workspace…
+    </div>
+  )return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: '#aaa', fontSize: 14 }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       <div style={{ width: 32, height: 32, border: '2px solid #f0f0f0', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
