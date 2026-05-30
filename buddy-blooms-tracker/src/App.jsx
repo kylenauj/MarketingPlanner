@@ -1175,7 +1175,7 @@ function App() {
 
 
   const [tasks,           setTasks]          = useState([])
-  const [loading,         setLoading]        = useState(true)
+  const [loading,         setLoading]        = useState(false)
   const [error,           setError]          = useState(null)
   const [saveStatus,      setSaveStatus]     = useState('')
   const [activeTab,       setActiveTab]      = useState('all')
@@ -1297,13 +1297,6 @@ function App() {
     </div>
   )
 
-  if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: '#aaa', fontSize: 14 }}>
-      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
-      <div style={{ width: 32, height: 32, border: '2px solid #f0f0f0', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      Loading workspace…
-    </div>
-  )
 return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: '#aaa', fontSize: 14 }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
