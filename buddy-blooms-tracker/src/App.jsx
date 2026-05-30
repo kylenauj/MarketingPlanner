@@ -1167,48 +1167,10 @@ function MeetingView({ tasks }) {
 
 // ── Main App ───────────────────────────────────────────────────────────────
 export default // ── Auth: Login Screen ────────────────────────────────────────────────────
-function LoginScreen({ onUnlock }) {
-  const [pw, setPw] = useState('')
-  const [err, setErr] = useState(false)
-
-  function handleSubmit(e) {
-    e.preventDefault()
-    if (pw === 'Mera2026!') {
-      sessionStorage.setItem('unlocked', '1')
-      onUnlock()
-    } else {
-      setErr(true)
-      setPw('')
-    }
-  }
-
-  const s = {
-    wrap: { display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100vh', background:'#F9F8F5', fontFamily:'inherit' },
-    card: { background:'#fff', borderRadius:'16px', padding:'48px 40px', boxShadow:'0 4px 24px rgba(0,0,0,0.08)', maxWidth:'360px', width:'100%', textAlign:'center' },
-    title: { fontSize:'22px', fontWeight:'700', color:'#1a1a1a', margin:'0 0 6px' },
-    sub: { fontSize:'14px', color:'#888', margin:'0 0 28px' },
-    input: { width:'100%', padding:'12px 16px', borderRadius:'8px', border:'1.5px solid #E5E4E0', fontSize:'15px', outline:'none', boxSizing:'border-box', marginBottom:'12px' },
-    btn: { width:'100%', padding:'13px', borderRadius:'8px', background:'#1a1a1a', color:'#fff', fontSize:'15px', fontWeight:'600', border:'none', cursor:'pointer' },
-    err: { color:'#c0392b', fontSize:'13px', marginTop:'10px' },
-  }
-
-  return (
-    <div style={s.wrap}>
-      <div style={s.card}>
-        <h1 style={s.title}>Project Tracker</h1>
-        <p style={s.sub}>Enter password to continue</p>
-        <form onSubmit={handleSubmit}>
-          <input style={s.input} type="password" placeholder="Password" value={pw} onChange={e => { setPw(e.target.value); setErr(false) }} required autoFocus />
-          <button style={s.btn} type="submit">Enter</button>
-          {err && <p style={s.err}>Incorrect password</p>}
-        </form>
-      </div>
-    </div>
-  )
-}
-
 function App() {
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('unlocked') === '1')
+  const [pw, setPw] = useState('')
+  const [pwErr, setPwErr] = useState(false)
 
 
 
@@ -1323,7 +1285,19 @@ function App() {
   })
 
   if (loading) 
-    if (!unlocked) return <LoginScreen onUnlock={() => setUnlocked(true)} />
+  if (!unlocked) return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'#F9F8F5',fontFamily:'inherit'}}>
+      <div style={{background:'#fff',borderRadius:'16px',padding:'48px 40px',boxShadow:'0 4px 24px rgba(0,0,0,0.08)',maxWidth:'360px',width:'100%',textAlign:'center'}}>
+        <h1 style={{fontSize:'22px',fontWeight:'700',color:'#1a1a1a',margin:'0 0 6px'}}>Project Tracker</h1>
+        <p style={{fontSize:'14px',color:'#888',margin:'0 0 28px'}}>Enter password to continue</p>
+        <form onSubmit={e => { e.preventDefault(); if (pw === 'Mera2026!') { sessionStorage.setItem('unlocked','1'); setUnlocked(true) } else { setPwErr(true); setPw('') } }}>
+          <input style={{width:'100%',padding:'12px 16px',borderRadius:'8px',border:'1.5px solid #E5E4E0',fontSize:'15px',outline:'none',boxSizing:'border-box',marginBottom:'12px'}} type="password" placeholder="Password" value={pw} onChange={e => { setPw(e.target.value); setPwErr(false) }} required autoFocus />
+          <button style={{width:'100%',padding:'13px',borderRadius:'8px',background:'#1a1a1a',color:'#fff',fontSize:'15px',fontWeight:'600',border:'none',cursor:'pointer'}} type="submit">Enter</button>
+          {pwErr && <p style={{color:'#c0392b',fontSize:'13px',marginTop:'10px'}}>Incorrect password</p>}
+        </form>
+      </div>
+    </div>
+  )
 return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: '#aaa', fontSize: 14 }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
