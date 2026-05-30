@@ -1166,7 +1166,82 @@ function MeetingView({ tasks }) {
 }
 
 // ── Main App ───────────────────────────────────────────────────────────────
-export default function App() {
+export default // ── Auth: Login Screen ────────────────────────────────────────────────────
+function LoginScreen() {
+  const [email, setEmail] = useState('')
+  const [sent, setSent] = useState(false)
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState(null)
+
+  async function handleLogin(e) {
+    e.preventDefault()
+    setAuthLoading(true)
+    setAuthError(null)
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin }
+    })
+    setAuthLoading(false)
+    if (error) { setAuthError(error.message) } else { setSent(true) }
+  }
+
+  const styles = {
+    wrap: { display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100vh', background:'#F9F8F5', fontFamily:'inherit' },
+    card: { background:'#fff', borderRadius:'16px', padding:'48px 40px', boxShadow:'0 4px 24px rgba(0,0,0,0.08)', maxWidth:'400px', width:'100%', textAlign:'center' },
+    logo: { fontSize:'32px', marginBottom:'8px' },
+    title: { fontSize:'22px', fontWeight:'700', color:'#1a1a1a', margin:'0 0 6px' },
+    sub: { fontSize:'14px', color:'#888', margin:'0 0 28px' },
+    input: { width:'100%', padding:'12px 16px', borderRadius:'8px', border:'1.5px solid #E5E4E0', fontSize:'15px', outline:'none', boxSizing:'border-box', marginBottom:'14px' },
+    btn: { width:'100%', padding:'13px', borderRadius:'8px', background:'#1a1a1a', color:'#fff', fontSize:'15px', fontWeight:'600', border:'none', cursor:'pointer' },
+    err: { color:'#c0392b', fontSize:'13px', marginTop:'8px' },
+    success: { fontSize:'15px', color:'#3B6D11', background:'#EAF3DE', padding:'16px', borderRadius:'8px' },
+  }
+
+  return (
+    <div style={styles.wrap}>
+      <div style={styles.card}>
+        <div style={styles.logo}>🌸</div>
+        <h1 style={styles.title}>Buddy Blooms</h1>
+        <p style={styles.sub}>Sign in to access the Project Tracker</p>
+        {sent ? (
+          <p style={styles.success}>✅ Magic link sent! Check your email and click the link to sign in.</p>
+        ) : (
+          <form onSubmit={handleLogin}>
+            <input
+              style={styles.input}
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+            <button style={styles.btn} type="submit" disabled={authLoading}>
+              {authLoading ? 'Sending…' : 'Send Magic Link'}
+            </button>
+            {authError && <p style={styles.err}>{authError}</p>}
+          </form>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function App() {
+  // ── Auth session ──────────────────────────────────────────────────────────
+  const [session, setSession] = useState(null)
+  const [sessionLoading, setSessionLoading] = useState(true)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s)
+      setSessionLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSession(s)
+      setSessionLoading(false)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
   const [tasks,           setTasks]          = useState([])
   const [loading,         setLoading]        = useState(true)
   const [error,           setError]          = useState(null)
@@ -1276,7 +1351,10 @@ export default function App() {
     display: 'flex', alignItems: 'center', gap: 6, fontWeight: active ? 600 : 400,
   })
 
-  if (loading) return (
+  if (loading) 
+  if (sessionLoading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',fontSize:'16px',color:'#888'}}>Loading…</div>
+  if (!session) return <LoginScreen />
+return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: '#aaa', fontSize: 14 }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       <div style={{ width: 32, height: 32, border: '2px solid #f0f0f0', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
