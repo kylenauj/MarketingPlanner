@@ -1167,7 +1167,7 @@ function MeetingView({ tasks }) {
 
 // ── Main App ───────────────────────────────────────────────────────────────
 export default // ── Auth: Login Screen ────────────────────────────────────────────────────
-function LoginScreen() {
+function LoginScreen({ onSignIn }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
@@ -1182,7 +1182,8 @@ function LoginScreen() {
       setAuthLoading(false)
       setAuthError(error.message)
     } else {
-      // sign-in succeeded; onAuthStateChange in App will update session state
+      const { data } = await supabase.auth.getSession()
+      onSignIn(data.session)
     }
   }
 
@@ -1216,15 +1217,12 @@ function LoginScreen() {
 
 function App() {
   const [session, setSession] = useState(null)
-  const [sessionLoading, setSessionLoading] = useState(true)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s)
-      setSessionLoading(false)
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s)
-      setSessionLoading(false)
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -1340,9 +1338,7 @@ function App() {
   })
 
   if (loading) 
-  if (sessionLoading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',fontSize:'16px',color:'#888'}}>Loading…</div>
-  if (sessionLoading) return null
-  if (!session) return <LoginScreen />
+  if (!session) return <LoginScreen onSignIn={setSession} />
 return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: '#aaa', fontSize: 14 }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
