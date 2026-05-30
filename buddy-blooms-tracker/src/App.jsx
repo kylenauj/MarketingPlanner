@@ -1178,9 +1178,12 @@ function LoginScreen() {
     setAuthLoading(true)
     setAuthError(null)
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setAuthLoading(false)
-    if (error) setAuthError(error.message)
-    // on success, onAuthStateChange in App will set session automatically
+    if (error) {
+      setAuthLoading(false)
+      setAuthError(error.message)
+    } else {
+      window.location.reload()
+    }
   }
 
   const styles = {
