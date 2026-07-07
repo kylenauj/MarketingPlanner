@@ -1,4 +1,4 @@
-# Buddy Blooms Project Tracker — Setup Guide
+# Project Tracker — Setup Guide
 
 A step-by-step guide to get the dashboard live on GitHub → Vercel, backed by Supabase.
 
