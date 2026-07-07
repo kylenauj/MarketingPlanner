@@ -21,6 +21,7 @@ const PRIORITY_COLORS = {
   'Medium (1-3 Weeks)': { bg: '#FAEEDA', text: '#854F0B' },
   'High (ASAP)':        { bg: '#FAECE7', text: '#993C1D' },
 }
+const priorityLabel = p => p.split(' (')[0]
 const ASSIGNEE_CAL = {
   'Kyle Nauj': { bar: '#185FA5', text: '#fff' },
   'Cece Rip':  { bar: '#8B3A62', text: '#fff' },
@@ -217,7 +218,7 @@ function StatusBadge({ status }) {
 }
 function PriorityBadge({ priority }) {
   const c = PRIORITY_COLORS[priority] || PRIORITY_COLORS['Low (1-10 Days)']
-  return <span style={{ background: c.bg, color: c.text, borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap' }}>{priority}</span>
+  return <span style={{ background: c.bg, color: c.text, borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap' }}>{priorityLabel(priority)}</span>
 }
 function TagBadge({ tag }) {
   const c = TAG_COLORS[tag] || { bg: '#f0f0f0', text: '#555' }
@@ -400,7 +401,7 @@ function TaskModal({ task, onClose, onSave, onDelete, currentUser }) {
                 <div style={{ fontSize: 11, color: '#999', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
                 <select value={t[field]} onChange={e => update(field, e.target.value)}
                   style={{ border: '1px solid #e2e2e2', borderRadius: 6, padding: '5px 8px', fontSize: 13, background: 'white', cursor: 'pointer' }}>
-                  {options.map(o => <option key={o} value={o}>{o}</option>)}
+                  {options.map(o => <option key={o} value={o}>{field === 'priority' ? priorityLabel(o) : o}</option>)}
                 </select>
               </div>
             ))}
@@ -632,7 +633,7 @@ function NewTaskModal({ onClose, onAdd, currentUser }) {
                 <label style={{ fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 4 }}>{label}</label>
                 <select value={t[field]} onChange={e => update(field, e.target.value)}
                   style={{ width: '100%', border: '1px solid #e2e2e2', borderRadius: 6, padding: '7px 8px', fontSize: 13, background: 'white' }}>
-                  {options.map(o => <option key={o} value={o}>{o}</option>)}
+                  {options.map(o => <option key={o} value={o}>{field === 'priority' ? priorityLabel(o) : o}</option>)}
                 </select>
               </div>
             ))}
@@ -1421,7 +1422,7 @@ if (loading) return (
               <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
                 style={{ border: '1px solid #e2e2e2', borderRadius: 8, padding: '7px 8px', fontSize: 13, background: 'white' }}>
                 <option value="All">All priorities</option>
-                {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+                {PRIORITIES.map(p => <option key={p} value={p}>{priorityLabel(p)}</option>)}
               </select>
               <select value={filterTag} onChange={e => setFilterTag(e.target.value)}
                 style={{ border: '1px solid #e2e2e2', borderRadius: 8, padding: '7px 8px', fontSize: 13, background: 'white' }}>
