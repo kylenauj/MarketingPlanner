@@ -1186,6 +1186,7 @@ function App() {
   const [filterStatus,    setFilterStatus]   = useState('All')
   const [filterPriority,  setFilterPriority] = useState('All')
   const [filterTag,       setFilterTag]      = useState('All')
+  const [hideCompleted,  setHideCompleted]  = useState(false) // hides Done tasks from the List view
   const [search,          setSearch]         = useState('')
   const [recurringPrompt, setRecurringPrompt]= useState(null) // task that just got completed
 
@@ -1251,6 +1252,19 @@ function App() {
     await handleAddTask(newTask)
   }
 
+  const handleExportBackup = () => {
+    const dataStr = JSON.stringify(tasks, null, 2)
+    const blob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `project-tracker-backup-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   const filtered = useMemo(() => {
     let list = tasks
     if (activeTab === 'mine') list = list.filter(t => t.assignee === 'Kyle Nauj')
@@ -1258,9 +1272,10 @@ function App() {
     if (filterStatus   !== 'All') list = list.filter(t => t.status   === filterStatus)
     if (filterPriority !== 'All') list = list.filter(t => t.priority === filterPriority)
     if (filterTag      !== 'All') list = list.filter(t => (t.tags || []).includes(filterTag))
+    if (hideCompleted) list = list.filter(t => t.status !== 'Done')
     if (search) list = list.filter(t => t.name.toLowerCase().includes(search.toLowerCase()) || t.department.toLowerCase().includes(search.toLowerCase()))
     return list
-  }, [tasks, activeTab, filterStatus, filterPriority, filterTag, search])
+  }, [tasks, activeTab, filterStatus, filterPriority, filterTag, search, hideCompleted])
 
   // Split filtered into sections for list view
   const overdueList  = filtered.filter(t => isOverdue(t))
@@ -1372,6 +1387,10 @@ if (loading) return (
             <button onClick={() => setView('workload')}  style={VBTN(view === 'workload')}><Svg d={ICONS.chart}    size={14} color={view === 'workload'  ? 'white' : '#555'} />Workload</button>
             <button onClick={() => setView('completed')} style={VBTN(view === 'completed')}><Svg d={ICONS.done}     size={14} color={view === 'completed' ? 'white' : '#555'} />Completed</button>
             <button onClick={() => setView('meeting')}   style={VBTN(view === 'meeting')}><Svg d={ICONS.meeting}   size={14} color={view === 'meeting'   ? 'white' : '#555'} />Weekly sync</button>
+            <button onClick={handleExportBackup}
+              style={{ background: '#f5f5f5', color: '#333', border: '1px solid #e2e2e2', borderRadius: 8, padding: '8px 16px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
+              <Svg d={ICONS.save} size={14} color="#333" /> Export
+            </button>
             <button onClick={() => setShowNewTask(true)}
               style={{ background: '#1a1a1a', color: 'white', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
               <Svg d={ICONS.plus} size={14} color="white" /> New task
@@ -1429,6 +1448,10 @@ if (loading) return (
                 <option value="All">All tags</option>
                 {TAGS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#555', cursor: 'pointer' }}>
+                <input type="checkbox" checked={hideCompleted} onChange={e => setHideCompleted(e.target.checked)} />
+                Hide completed
+              </label>
             </div>
           </div>
 
