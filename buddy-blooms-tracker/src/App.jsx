@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from './supabase'
 
+// ── Constants ──────────────────────────────────────────────────────────────
 const STATUSES    = ['To Do', 'In Progress', 'In Review', 'Done']
 const PRIORITIES  = ['Low (1-10 Days)', 'Medium (1-3 Weeks)', 'High (ASAP)']
 const DEPARTMENTS = ['Marketing', 'Design', 'Development', 'Operations', 'Sales', 'Admin']
@@ -21,7 +22,6 @@ const PRIORITY_COLORS = {
   'Medium (1-3 Weeks)': { bg: '#FAEEDA', text: '#854F0B' },
   'High (ASAP)':        { bg: '#FAECE7', text: '#993C1D' },
 }
-const priorityLabel = p => p.split(' (')[0]
 const ASSIGNEE_CAL = {
   'Kyle Nauj': { bar: '#185FA5', text: '#fff' },
   'Cece Rip':  { bar: '#8B3A62', text: '#fff' },
@@ -218,7 +218,7 @@ function StatusBadge({ status }) {
 }
 function PriorityBadge({ priority }) {
   const c = PRIORITY_COLORS[priority] || PRIORITY_COLORS['Low (1-10 Days)']
-  return <span style={{ background: c.bg, color: c.text, borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap' }}>{priorityLabel(priority)}</span>
+  return <span style={{ background: c.bg, color: c.text, borderRadius: 6, padding: '3px 8px', fontSize: 12, fontWeight: 500, whiteSpace: 'nowrap' }}>{priority}</span>
 }
 function TagBadge({ tag }) {
   const c = TAG_COLORS[tag] || { bg: '#f0f0f0', text: '#555' }
@@ -401,7 +401,7 @@ function TaskModal({ task, onClose, onSave, onDelete, currentUser }) {
                 <div style={{ fontSize: 11, color: '#999', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
                 <select value={t[field]} onChange={e => update(field, e.target.value)}
                   style={{ border: '1px solid #e2e2e2', borderRadius: 6, padding: '5px 8px', fontSize: 13, background: 'white', cursor: 'pointer' }}>
-                  {options.map(o => <option key={o} value={o}>{field === 'priority' ? priorityLabel(o) : o}</option>)}
+                  {options.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
             ))}
@@ -633,7 +633,7 @@ function NewTaskModal({ onClose, onAdd, currentUser }) {
                 <label style={{ fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 4 }}>{label}</label>
                 <select value={t[field]} onChange={e => update(field, e.target.value)}
                   style={{ width: '100%', border: '1px solid #e2e2e2', borderRadius: 6, padding: '7px 8px', fontSize: 13, background: 'white' }}>
-                  {options.map(o => <option key={o} value={o}>{field === 'priority' ? priorityLabel(o) : o}</option>)}
+                  {options.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               </div>
             ))}
@@ -1166,17 +1166,9 @@ function MeetingView({ tasks }) {
 }
 
 // ── Main App ───────────────────────────────────────────────────────────────
-export default // ── Auth: Login Screen ────────────────────────────────────────────────────
-function App() {
-  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('unlocked') === '1')
-  const [pw, setPw] = useState('')
-  const [pwErr, setPwErr] = useState(false)
-
-
-
-
+export default function App() {
   const [tasks,           setTasks]          = useState([])
-  const [loading,         setLoading]        = useState(false)
+  const [loading,         setLoading]        = useState(true)
   const [error,           setError]          = useState(null)
   const [saveStatus,      setSaveStatus]     = useState('')
   const [activeTab,       setActiveTab]      = useState('all')
@@ -1187,6 +1179,7 @@ function App() {
   const [filterPriority,  setFilterPriority] = useState('All')
   const [filterTag,       setFilterTag]      = useState('All')
   const [search,          setSearch]         = useState('')
+  const [hideDone,        setHideDone]       = useState(false)
   const [recurringPrompt, setRecurringPrompt]= useState(null) // task that just got completed
 
   const currentUser = activeTab === 'cece' ? 'Cece Rip' : 'Kyle Nauj'
@@ -1258,9 +1251,10 @@ function App() {
     if (filterStatus   !== 'All') list = list.filter(t => t.status   === filterStatus)
     if (filterPriority !== 'All') list = list.filter(t => t.priority === filterPriority)
     if (filterTag      !== 'All') list = list.filter(t => (t.tags || []).includes(filterTag))
+    if (hideDone) list = list.filter(t => t.status !== 'Done')
     if (search) list = list.filter(t => t.name.toLowerCase().includes(search.toLowerCase()) || t.department.toLowerCase().includes(search.toLowerCase()))
     return list
-  }, [tasks, activeTab, filterStatus, filterPriority, filterTag, search])
+  }, [tasks, activeTab, filterStatus, filterPriority, filterTag, hideDone, search])
 
   // Split filtered into sections for list view
   const overdueList  = filtered.filter(t => isOverdue(t))
@@ -1284,21 +1278,71 @@ function App() {
     display: 'flex', alignItems: 'center', gap: 6, fontWeight: active ? 600 : 400,
   })
 
-  if (!unlocked) return (
-    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'#F9F8F5',fontFamily:'inherit'}}>
-      <div style={{background:'#fff',borderRadius:'16px',padding:'48px 40px',boxShadow:'0 4px 24px rgba(0,0,0,0.08)',maxWidth:'360px',width:'100%',textAlign:'center'}}>
-        <h1 style={{fontSize:'22px',fontWeight:'700',color:'#1a1a1a',margin:'0 0 6px'}}>Project Tracker</h1>
-        <p style={{fontSize:'14px',color:'#888',margin:'0 0 28px'}}>Enter password to continue</p>
-        <form onSubmit={e => { e.preventDefault(); if (pw === 'Mera2026!') { sessionStorage.setItem('unlocked','1'); setUnlocked(true) } else { setPwErr(true); setPw('') } }}>
-          <input style={{width:'100%',padding:'12px 16px',borderRadius:'8px',border:'1.5px solid #E5E4E0',fontSize:'15px',outline:'none',boxSizing:'border-box',marginBottom:'12px'}} type="password" placeholder="Password" value={pw} onChange={e => { setPw(e.target.value); setPwErr(false) }} required autoFocus />
-          <button style={{width:'100%',padding:'13px',borderRadius:'8px',background:'#1a1a1a',color:'#fff',fontSize:'15px',fontWeight:'600',border:'none',cursor:'pointer'}} type="submit">Enter</button>
-          {pwErr && <p style={{color:'#c0392b',fontSize:'13px',marginTop:'10px'}}>Incorrect password</p>}
-        </form>
+  // ── Password gate ───────────────────────────────────────────────────────
+  const CORRECT_PASSWORD = import.meta.env.VITE_APP_PASSWORD
+  const [authed,    setAuthed]    = useState(() => sessionStorage.getItem('bb_auth') === CORRECT_PASSWORD)
+  const [pwInput,   setPwInput]   = useState('')
+  const [pwError,   setPwError]   = useState(false)
+  const [pwVisible, setPwVisible] = useState(false)
+
+  const handlePasswordSubmit = () => {
+    if (pwInput === CORRECT_PASSWORD) {
+      sessionStorage.setItem('bb_auth', CORRECT_PASSWORD)
+      setAuthed(true)
+      setPwError(false)
+    } else {
+      setPwError(true)
+      setPwInput('')
+    }
+  }
+
+  if (!authed) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f8f8f6' }}>
+      <div style={{ background: 'white', borderRadius: 16, padding: '40px 44px', width: '100%', maxWidth: 400, boxShadow: '0 4px 32px rgba(0,0,0,0.08)', textAlign: 'center' }}>
+        <div style={{ width: 48, height: 48, background: '#1a1a1a', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+        </div>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: '#1a1a1a', fontFamily: 'Georgia, serif', margin: '0 0 6px' }}>Project Tracker</h1>
+        <p style={{ fontSize: 14, color: '#aaa', margin: '0 0 28px' }}>Marketing / Graphic Design</p>
+
+        <div style={{ position: 'relative', marginBottom: 12 }}>
+          <input
+            type={pwVisible ? 'text' : 'password'}
+            value={pwInput}
+            onChange={e => { setPwInput(e.target.value); setPwError(false) }}
+            onKeyDown={e => e.key === 'Enter' && handlePasswordSubmit()}
+            placeholder="Enter password"
+            autoFocus
+            style={{ width: '100%', border: `1.5px solid ${pwError ? '#f5c4b3' : '#e2e2e2'}`, borderRadius: 10, padding: '12px 44px 12px 16px', fontSize: 15, outline: 'none', boxSizing: 'border-box', background: pwError ? '#fffaf9' : 'white', transition: 'border 0.15s' }}
+          />
+          <button onClick={() => setPwVisible(v => !v)}
+            style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#bbb', padding: 2 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              {pwVisible
+                ? <><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>
+                : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
+              }
+            </svg>
+          </button>
+        </div>
+
+        {pwError && (
+          <p style={{ fontSize: 13, color: '#993C1D', margin: '0 0 12px', textAlign: 'left' }}>Incorrect password. Please try again.</p>
+        )}
+
+        <button onClick={handlePasswordSubmit}
+          style={{ width: '100%', background: '#1a1a1a', color: 'white', border: 'none', borderRadius: 10, padding: '13px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+          Enter workspace
+        </button>
+
+        <p style={{ fontSize: 12, color: '#ccc', marginTop: 20, marginBottom: 0 }}>Internal use only</p>
       </div>
     </div>
   )
 
-if (loading) return (
+  if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', flexDirection: 'column', gap: 12, color: '#aaa', fontSize: 14 }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       <div style={{ width: 32, height: 32, border: '2px solid #f0f0f0', borderTopColor: '#1a1a1a', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
@@ -1411,7 +1455,7 @@ if (loading) return (
                 { id: 'cece', label: `Cece's (${counts.cece})`     },
               ].map(tab => <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={TAB(activeTab === tab.id)}>{tab.label}</button>)}
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
                 style={{ border: '1px solid #e2e2e2', borderRadius: 8, padding: '7px 12px', fontSize: 13, width: 140 }} />
               <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
@@ -1422,13 +1466,20 @@ if (loading) return (
               <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
                 style={{ border: '1px solid #e2e2e2', borderRadius: 8, padding: '7px 8px', fontSize: 13, background: 'white' }}>
                 <option value="All">All priorities</option>
-                {PRIORITIES.map(p => <option key={p} value={p}>{priorityLabel(p)}</option>)}
+                {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
               <select value={filterTag} onChange={e => setFilterTag(e.target.value)}
                 style={{ border: '1px solid #e2e2e2', borderRadius: 8, padding: '7px 8px', fontSize: 13, background: 'white' }}>
                 <option value="All">All tags</option>
                 {TAGS.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
+              <button onClick={() => setHideDone(h => !h)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, border: `1.5px solid ${hideDone ? '#3B6D11' : '#e2e2e2'}`, borderRadius: 8, padding: '6px 12px', fontSize: 13, background: hideDone ? '#EAF3DE' : 'white', color: hideDone ? '#3B6D11' : '#888', cursor: 'pointer', fontWeight: hideDone ? 600 : 400, whiteSpace: 'nowrap' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  {hideDone ? <><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></> : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>}
+                </svg>
+                {hideDone ? 'Showing active' : 'Hide done'}
+              </button>
             </div>
           </div>
 
