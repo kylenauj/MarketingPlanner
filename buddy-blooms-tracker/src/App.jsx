@@ -1279,7 +1279,7 @@ export default function App() {
   })
 
   // ── Password gate ───────────────────────────────────────────────────────
-  const CORRECT_PASSWORD = import.meta.env.VITE_APP_PASSWORD
+  const CORRECT_PASSWORD = 'Mera2026!'
   const [authed,    setAuthed]    = useState(() => sessionStorage.getItem('bb_auth') === CORRECT_PASSWORD)
   const [pwInput,   setPwInput]   = useState('')
   const [pwError,   setPwError]   = useState(false)
